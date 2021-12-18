@@ -1,5 +1,5 @@
 use tui::widgets::{Widget, Cell, ListItem, List, ListState, Block, Table, Row, Borders};
-use tui::layout::{Layout, Constraint, Direction};
+use tui::layout::{Layout, Constraint, Direction, Rect};
 use tui::style::{Color, Modifier, Style};
 use tui::backend::Backend;
 use tui::text::{Span, Spans, Text};
@@ -7,8 +7,7 @@ use tui::Frame;
 
 use crate::todo::TodoList;
 
-//draw takes a frame, and a todo list object (contains a list, state)
-pub fn draw<B: Backend>(f: &mut Frame<B>, todo: &mut TodoList) {
+pub fn draw_list_mode<B: Backend>(f: &mut Frame<B>, todo: &mut TodoList) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .margin(1)
@@ -26,6 +25,12 @@ pub fn draw<B: Backend>(f: &mut Frame<B>, todo: &mut TodoList) {
             .borders(Borders::ALL);
     f.render_widget(block, chunks[1]);
 
+
+    draw_list(f, chunks[0], todo);
+}
+
+//draw takes a frame, and a todo list object (contains a list, state)
+pub fn draw_list<B: Backend>(f: &mut Frame<B>, chunk: Rect, todo: &mut TodoList) {
     let items: Vec<ListItem> = todo
         .list
         .iter()
@@ -41,11 +46,5 @@ pub fn draw<B: Backend>(f: &mut Frame<B>, todo: &mut TodoList) {
         .highlight_style(Style::default().add_modifier(Modifier::BOLD))
         .highlight_symbol(">> ");
 
-    f.render_stateful_widget(todo_list, chunks[0], &mut todo.state);
-    // f.render_widget(list2, chunks[0]);
-
+    f.render_stateful_widget(todo_list, chunk, &mut todo.state);
 }
-
-// pub fn draw_list() {
-
-// }

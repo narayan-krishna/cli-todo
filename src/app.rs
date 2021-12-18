@@ -27,7 +27,7 @@ impl App {
         self.todo_list.add_task("5 task".to_string());
 
         terminal.clear();
-        terminal.draw(|f| ui::draw(f, &mut self.todo_list))?;
+        terminal.draw(|f| ui::draw_list_mode(f, &mut self.todo_list))?;
         Ok(())
     }
 }
