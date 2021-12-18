@@ -1,10 +1,10 @@
-use tui::widgets::ListState;
+use tui::widgets::{ListState};
 
 //---------------------------------------------------------
 
 struct TodoItem {
-    name: String,
-    completed: char
+    pub name: String,
+    pub completed: char
 }
 
 impl TodoItem {
@@ -14,18 +14,25 @@ impl TodoItem {
             completed: ' '
         };
     }
+
+    pub fn get_name(self) -> String {
+        return self.name;
+    }
 }
 
 //---------------------------------------------------------
 
 pub struct TodoList {
-    list: Vec<TodoItem>,
-    state: ListState,
+    pub list: Vec<String>,
+    pub state: ListState,
 }
 
 impl TodoList {
     pub fn new() -> TodoList {
-        return TodoList{list: Vec::new(), state: ListState::default()}
+        return TodoList{
+            list: Vec::new(), 
+            state: ListState::default()
+        }
     }
 
     pub fn next(&mut self) {
@@ -57,30 +64,36 @@ impl TodoList {
     }
 
     pub fn add_task(&mut self, name: String) {
-        let todo_item = TodoItem::new(name);
-        self.list.push(todo_item);
+        self.list.push(name);
+        self.state.select(Some(self.list.len() - 1));
     }
 
+    // pub fn add_task(&mut self, name: String) {
+    //     let todo_item = TodoItem::new(name);
+    //     self.list.push(todo_item);
+    //     self.state.select(Some(self.list.len() - 1));
+    // }
 
-    pub fn mark_as_complete(&mut self, index: usize) {
-        // if x > 0 && x < list.size()
-        self.list[index].completed = 'x';
-    }
 
-    pub fn mark_as_uncomplete(&mut self, index: usize) {
-        // if x > 0 && x < list.size()
-        self.list[index].completed = ' ';
-    }
+    // pub fn mark_as_complete(&mut self, index: usize) {
+    //     // if x > 0 && x < list.size()
+    //     self.list[index].completed = 'x';
+    // }
 
-    pub fn remove(&mut self, index: usize) {
-        self.list.remove(index);
-    }
+    // pub fn mark_as_uncomplete(&mut self, index: usize) {
+    //     // if x > 0 && x < list.size()
+    //     self.list[index].completed = ' ';
+    // }
 
-    fn print(&self) {
-        for (index, item) in self.list.iter().enumerate() {
-            println!("{} -- [{}] -- {}", index, item.completed, item.name);
-        }
-    }
+    // pub fn remove(&mut self, index: usize) {
+    //     self.list.remove(index);
+    // }
+
+    // fn print(&self) {
+    //     for (index, item) in self.list.iter().enumerate() {
+    //         println!("{} -- [{}] -- {}", index, item.completed, item.name);
+    //     }
+    // }
 }
 
 //---------------------------------------------------------
