@@ -2,9 +2,12 @@ use tui::widgets::{ListState};
 
 //---------------------------------------------------------
 
-struct TodoItem {
+pub struct TodoItem {
     pub name: String,
-    pub completed: char
+    pub completed: char,
+    // pub date_started: 
+    // pub date_finished:
+    // pub finish_by:
 }
 
 impl TodoItem {
@@ -23,7 +26,8 @@ impl TodoItem {
 //---------------------------------------------------------
 
 pub struct TodoList {
-    pub list: Vec<String>,
+    // pub list: Vec<String>,
+    pub list: Vec<TodoItem>,
     pub state: ListState,
 }
 
@@ -63,16 +67,16 @@ impl TodoList {
         self.state.select(Some(i));
     }
 
-    pub fn add_task(&mut self, name: String) {
-        self.list.push(name);
-        self.state.select(Some(self.list.len() - 1));
-    }
-
     // pub fn add_task(&mut self, name: String) {
-    //     let todo_item = TodoItem::new(name);
-    //     self.list.push(todo_item);
+    //     self.list.push(name);
     //     self.state.select(Some(self.list.len() - 1));
     // }
+
+    pub fn add_task(&mut self, name: String) {
+        let todo_item = TodoItem::new(name);
+        self.list.push(todo_item);
+        self.state.select(Some(self.list.len() - 1));
+    }
 
 
     // pub fn mark_as_complete(&mut self, index: usize) {
