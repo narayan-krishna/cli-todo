@@ -26,6 +26,10 @@ impl App {
         self.todo_list.add_task("task 4 4 4 4".to_string());
         self.todo_list.add_task("5 task".to_string());
 
+        self.todo_list.next();
+        self.todo_list.remove();
+        self.todo_list.next();
+
         terminal.clear();
         terminal.draw(|f| ui::draw(f, &mut self.todo_list))?;
         Ok(())

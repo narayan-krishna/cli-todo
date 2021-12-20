@@ -14,13 +14,14 @@ impl TodoItem {
     fn new(name: String) -> TodoItem {
         return TodoItem {
             name: name,
-            completed: ' '
+            completed: ' ',
+
         };
     }
 
-    pub fn get_name(self) -> String {
-        return self.name;
-    }
+    // pub fn set_name(&mut self) {
+
+    // }
 }
 
 //---------------------------------------------------------
@@ -29,13 +30,15 @@ pub struct TodoList {
     // pub list: Vec<String>,
     pub list: Vec<TodoItem>,
     pub state: ListState,
+    // index: i64
 }
 
 impl TodoList {
     pub fn new() -> TodoList {
         return TodoList{
             list: Vec::new(), 
-            state: ListState::default()
+            state: ListState::default(),
+            // index: 0;
         }
     }
 
@@ -78,9 +81,18 @@ impl TodoList {
         self.state.select(Some(self.list.len() - 1));
     }
 
+    pub fn remove(&mut self) {
+        let i = match self.state.selected() {
+            Some(i) => {
+                self.list.remove(i);
+            } 
+            None => println!("requires an element to remove!"),
+        };
+    }
 
     // pub fn mark_as_complete(&mut self, index: usize) {
-    //     // if x > 0 && x < list.size()
+    //     if x > 0 && x < list.size() { 
+    //     }
     //     self.list[index].completed = 'x';
     // }
 
@@ -89,14 +101,14 @@ impl TodoList {
     //     self.list[index].completed = ' ';
     // }
 
-    // pub fn remove(&mut self, index: usize) {
-    //     self.list.remove(index);
-    // }
 
     // fn print(&self) {
     //     for (index, item) in self.list.iter().enumerate() {
     //         println!("{} -- [{}] -- {}", index, item.completed, item.name);
     //     }
+    // }
+    // pub fn set_due_date(&mut self, date: Date) {
+
     // }
 }
 

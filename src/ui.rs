@@ -82,7 +82,7 @@ pub fn draw_todo_list<B: Backend>(f: &mut Frame<B>, chunk: Rect, todo: &mut Todo
         .collect();
 
     let todo_list = List::new(items)
-        .block(Block::default().title("List").borders(Borders::ALL))
+        .block(Block::default().title("Todo List").borders(Borders::ALL))
         .style(Style::default().fg(Color::White))
         .highlight_style(Style::default().add_modifier(Modifier::BOLD))
         .highlight_symbol(">> ");
