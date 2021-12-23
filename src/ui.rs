@@ -15,7 +15,7 @@ pub fn draw<B: Backend>(f: &mut Frame<B>, todo: &mut TodoList) {
 pub fn draw_list_mode<B: Backend>(f: &mut Frame<B>, todo: &mut TodoList) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
-        .margin(1)
+        // .margin(1)
         .constraints(
             [
                 // Constraint::Percentage(85),
@@ -111,6 +111,7 @@ pub fn draw_todo_info<B: Backend>(f: &mut Frame<B>, chunk: Rect, todo: &mut Todo
                               + &curr_item.get_date_started_rfc())),
         Spans::from(Span::raw("Date last modified: ".to_string() 
                               + &curr_item.get_date_last_modified_rfc())),
+        Spans::from(""),
         Spans::from(""),
         Spans::from("Description: ".to_string() + &curr_item.get_description()),
     ];

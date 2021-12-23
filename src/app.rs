@@ -91,10 +91,11 @@ impl App {
 
         terminal.clear();
         let events = events(Duration::from_millis(50));
+        terminal.hide_cursor(); //LINE OF GOD
         loop {
             //register event
             // terminal.show_cursor();
-            terminal.show_cursor();
+            // terminal.set_cursor(100,100);
             terminal.draw(|f| ui::draw(f, &mut self.todo_list))?;
             match events.recv()? {
                 Event::Input(key) => match key {
