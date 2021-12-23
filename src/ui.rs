@@ -107,7 +107,7 @@ pub fn draw_todo_info<B: Backend>(f: &mut Frame<B>, chunk: Rect, todo: &mut Todo
                               + &curr_item.get_date_started_rfc())),
         Spans::from(Span::raw("Date last modified: ".to_string() 
                               + &curr_item.get_date_last_modified_rfc())),
-        Spans::from("line 2"),
+        Spans::from("Description: ".to_string()),
     ];
 
     let todo_descript_paragraph = Paragraph::new(todo_descript_lines)

@@ -8,7 +8,7 @@ use std::{error::Error,
 use termion::{
     event::Key,
     raw::IntoRawMode,
-    input::{MouseTerminal, TermRead},
+    input::{TermRead},
     screen::AlternateScreen 
 };
 
@@ -18,9 +18,41 @@ use tui::backend::TermionBackend;
 use crate::todo::TodoList;
 use crate::ui;
 
+//add to separate events file -----------------------------
+enum Event {
+    Input(Key),
+    Tick,
+}
+
+fn events(tick_rate: Duration) -> mpsc::Receiver<Event> {
+    let (tx, rx) = mpsc::channel();
+    let keys_tx = tx.clone();
+    thread::spawn(move || {
+        let stdin = io::stdin();
+        for evt in stdin.keys() {
+            if let Ok(key) = evt {
+                if let Err(err) = keys_tx.send(Event::Input(key)) {
+                    eprintln!("{}", err);
+                    return;
+                }
+            }
+        }
+    });
+    thread::spawn(move || loop {
+        if let Err(err) = tx.send(Event::Tick) {
+            eprintln!("{}", err);
+            break;
+        }
+        thread::sleep(tick_rate);
+    });
+    rx
+}
+//---------------------------------------------------------
+
 pub struct App {
     pub todo_list: TodoList,
-    pub todo_lists: Vec<TodoList>
+    pub todo_lists: Vec<TodoList>,
+    quit: bool,
 }
 
 impl App {
@@ -28,13 +60,14 @@ impl App {
         return App { 
             todo_list: TodoList::new(),
             todo_lists: Vec::new(),
+            quit: false,
         }
     }
 
-    pub fn run(&mut self) -> Result<(), io::Error> {
+    pub fn run(&mut self) -> Result<(), Box<dyn Error>> {
         let stdout = io::stdout().into_raw_mode()?;
         // let stdout = MouseTerminal::from(stdout);
-        // let stdout = AlternateScreen::from(stdout);
+        let stdout = AlternateScreen::from(stdout);
         let backend = TermionBackend::new(stdout);
         let mut terminal = Terminal::new(backend)?;
 
@@ -44,16 +77,36 @@ impl App {
         self.todo_list.add_task("task 4 4 4 4".to_string());
         self.todo_list.add_task("5 task".to_string());
 
-        self.todo_list.next();
-        self.todo_list.remove();
-        self.todo_list.next();
+        // self.todo_list
+
 
         terminal.clear();
-        // loop {
-        terminal.draw(|f| ui::draw(f, &mut self.todo_list))?;
-        thread::sleep(Duration::from_secs(1));    
-        // }
+        let events = events(Duration::from_millis(50));
+        loop {
+            //register event
+            terminal.draw(|f| ui::draw(f, &mut self.todo_list))?;
+            match events.recv()? {
+                Event::Input(key) => match key {
+                    Key::Char(c) => {
+                        if c == 'q' {
+                            self.quit = true;
+                        }
+                        if c == 'j' {
+                            self.todo_list.next();
+                        }
+                    }
+                    _ => {}
+                }
+                Event::Tick => {},
+            }
+            if self.quit == true {
+                return Ok(())
+            }
+        }
         
         Ok(())
     }
+
+
+
 }
