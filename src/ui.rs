@@ -1,11 +1,12 @@
-use tui::widgets::{Widget, Cell, ListItem, List, ListState, Block, Table, Row, Borders};
-use tui::layout::{Layout, Constraint, Direction, Rect};
+use tui::widgets::{Widget, Cell, ListItem, List, Paragraph,
+                   ListState, Block, Table, Row, Borders};
+use tui::layout::{Alignment, Layout, Constraint, Direction, Rect};
 use tui::style::{Color, Modifier, Style};
 use tui::backend::Backend;
 use tui::text::{Span, Spans, Text};
 use tui::Frame;
 
-use crate::todo::TodoList;
+use crate::todo::{TodoList, TodoItem};
 
 pub fn draw<B: Backend>(f: &mut Frame<B>, todo: &mut TodoList) {
     draw_list_mode(f, todo);
@@ -44,7 +45,7 @@ pub fn draw_top_panel<B: Backend>(f: &mut Frame<B>, chunk: Rect, todo: &mut Todo
         .split(chunk);
 
     draw_todo_list(f, chunks[0], todo);
-    draw_command(f, chunks[1]);
+    draw_todo_info(f, chunks[1], todo);
 }
 
 pub fn draw_bot_panel<B: Backend>(f: &mut Frame<B>, chunk: Rect) {
@@ -53,13 +54,14 @@ pub fn draw_bot_panel<B: Backend>(f: &mut Frame<B>, chunk: Rect) {
         // .margin(1)
         .constraints(
             [
-                Constraint::Percentage(50),
-                Constraint::Percentage(50),
+                Constraint::Percentage(75),
+                Constraint::Percentage(25),
             ].as_ref()
         )
         .split(chunk);
     draw_command(f, chunks[0]);
     draw_command(f, chunks[1]);
+    // draw_date_time(f, chunks[1]);
 }
 
 pub fn draw_command<B: Backend>(f: &mut Frame<B>, chunk: Rect) {
@@ -72,7 +74,7 @@ pub fn draw_command<B: Backend>(f: &mut Frame<B>, chunk: Rect) {
 //draw takes a frame, and a todo list object (contains a list, state)
 pub fn draw_todo_list<B: Backend>(f: &mut Frame<B>, chunk: Rect, todo: &mut TodoList) {
     let items: Vec<ListItem> = todo
-        .list
+        .uncompleted_list
         .iter()
         .map(|p| {
             let descript: &String = &p.name;
@@ -82,7 +84,10 @@ pub fn draw_todo_list<B: Backend>(f: &mut Frame<B>, chunk: Rect, todo: &mut Todo
         .collect();
 
     let todo_list = List::new(items)
-        .block(Block::default().title("Todo List").borders(Borders::ALL))
+        .block(Block::default()
+        .title(Span::raw(&todo.name))
+        .title_alignment(Alignment::Center)
+        .borders(Borders::ALL))
         .style(Style::default().fg(Color::White))
         .highlight_style(Style::default().add_modifier(Modifier::BOLD))
         .highlight_symbol(">> ");
@@ -90,20 +95,33 @@ pub fn draw_todo_list<B: Backend>(f: &mut Frame<B>, chunk: Rect, todo: &mut Todo
     f.render_stateful_widget(todo_list, chunk, &mut todo.state);
 }
 
-// pub fn draw_task_info<B: Backend>(f: &mut Frame<B>, chunk: Rect, todo: &mut TodoList) {
+pub fn draw_todo_info<B: Backend>(f: &mut Frame<B>, chunk: Rect, todo: &mut TodoList) {
 
-//     let task_info_items: Vec<ListItem> = todo
-//         .list
-//         .iter().
-//         .map(|p| {
-//             //let descript: &String = &p.name;
-//             let item = Text::raw(tag + info);
-//             ListItem::new(item)
-//         }
+    let curr_index = todo.current_task_index();
+    let curr_item: &TodoItem = &todo.uncompleted_list[curr_index];
 
-//     let task_info = List::new(task_info_items)
-//         .block(Block::default().title("Task Report").borders(Borders::ALL))
-//         .style(Style::default().fg(Color::White))
+    let todo_descript_lines = vec![
+        Spans::from(Span::raw("TASK: ".to_string() + &curr_item.get_name())),
+        Spans::from(""),
+        Spans::from(Span::raw("Date created: ".to_string() 
+                              + &curr_item.get_date_started_rfc())),
+        Spans::from(Span::raw("Date last modified: ".to_string() 
+                              + &curr_item.get_date_last_modified_rfc())),
+        Spans::from("line 2"),
+    ];
 
-//     f.render_stateful_widget(todo_list, chunk, &mut todo.state);
+    let todo_descript_paragraph = Paragraph::new(todo_descript_lines)
+        .block(Block::default()
+        .title("Task Report")
+        .title_alignment(Alignment::Center)
+        .borders(Borders::ALL))
+        .style(Style::default().fg(Color::White).bg(Color::Black))
+        .alignment(Alignment::Left);
+        // .wrap(Wrap { trim: true });
+
+    f.render_widget(todo_descript_paragraph, chunk);
+}
+
+// pub fn draw_date_time<B: Backend>(f: &mut Frame<B>, chunk: Rect, todo: &mut TodoList) {
+
 // }

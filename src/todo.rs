@@ -1,34 +1,73 @@
 use tui::widgets::{ListState};
+use chrono::{Local, Utc, DateTime};
 
 //---------------------------------------------------------
 
 pub struct TodoItem {
     pub name: String,
-    pub completed: char,
-    // pub date_started: 
-    // pub date_finished:
-    // pub finish_by:
+    pub completed: bool,
+    pub date_started: DateTime<Local>,
+    // pub date_finished: DateTime,
+    pub date_last_modified: DateTime<Local>,
+    pub description: String,
+    pub tags: Vec<String>
+    // pub finish_by: i64:
 }
 
 impl TodoItem {
     fn new(name: String) -> TodoItem {
         return TodoItem {
             name: name,
-            completed: ' ',
-
+            completed: false,
+            date_started: Local::now(),
+            date_last_modified: Local::now(),
+            // date_finished: ,
+            description: "".to_string(),
+            tags: Vec::new()
         };
     }
 
-    // pub fn set_name(&mut self) {
-
+    // fn new(name: String, description: String) -> TodoItem {
+    //     return TodoItem {
+    //         name: name,
+    //         completed: false,
+    //         date_started: Local::now(),
+    //         date_last_modified: Local::now(),
+    //         // date_finished: ,
+    //         description: description,
+    //         tags: Vec::new()
+    //     };
     // }
+
+    pub fn get_name(&self) -> &String {
+        return &self.name;
+    }
+
+    pub fn get_date_started_rfc(&self) -> String {
+        return self.date_started.to_rfc2822();
+    }
+
+    pub fn get_date_last_modified_rfc(&self) -> String {
+        return self.date_last_modified.to_rfc2822();
+    }
+
+    pub fn add_description(&mut self, descript: String) {
+        self.description =  descript;
+        self.date_last_modified = Local::now() 
+    }
+
+    pub fn add_tag(&mut self, tag: String) {
+        self.tags.push(tag);
+        self.date_last_modified = Local::now() 
+    }
 }
 
 //---------------------------------------------------------
 
 pub struct TodoList {
-    // pub list: Vec<String>,
-    pub list: Vec<TodoItem>,
+    pub name: String,
+    pub uncompleted_list: Vec<TodoItem>,
+    pub completed_list: Vec<TodoItem>,
     pub state: ListState,
     // index: i64
 }
@@ -36,7 +75,9 @@ pub struct TodoList {
 impl TodoList {
     pub fn new() -> TodoList {
         return TodoList{
-            list: Vec::new(), 
+            name: "New List".to_string(),
+            uncompleted_list: Vec::new(), 
+            completed_list: Vec::new(), 
             state: ListState::default(),
             // index: 0;
         }
@@ -45,7 +86,7 @@ impl TodoList {
     pub fn next(&mut self) {
         let i = match self.state.selected() {
             Some(i) => {
-                if i >= self.list.len() - 1 {
+                if i >= self.uncompleted_list.len() - 1 {
                     0
                 } else {
                     i + 1
@@ -60,7 +101,7 @@ impl TodoList {
         let i = match self.state.selected() {
             Some(i) => {
                 if i == 0 {
-                   self.list.len() - 1 
+                   self.uncompleted_list.len() - 1 
                 } else {
                     i - 1 
                 }
@@ -70,21 +111,23 @@ impl TodoList {
         self.state.select(Some(i));
     }
 
-    // pub fn add_task(&mut self, name: String) {
-    //     self.list.push(name);
-    //     self.state.select(Some(self.list.len() - 1));
-    // }
+    pub fn current_task_index(&self) -> usize {
+        let i = match self.state.selected() {
+            Some(i) => return i,
+            None => return 0,
+        };
+    }
 
     pub fn add_task(&mut self, name: String) {
         let todo_item = TodoItem::new(name);
-        self.list.push(todo_item);
-        self.state.select(Some(self.list.len() - 1));
+        self.uncompleted_list.push(todo_item);
+        self.state.select(Some(self.uncompleted_list.len() - 1));
     }
 
     pub fn remove(&mut self) {
         let i = match self.state.selected() {
             Some(i) => {
-                self.list.remove(i);
+                self.uncompleted_list.remove(i);
             } 
             None => println!("requires an element to remove!"),
         };
