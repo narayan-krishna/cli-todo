@@ -10,7 +10,8 @@ pub struct TodoItem {
     // pub date_finished: DateTime,
     pub date_last_modified: DateTime<Local>,
     pub description: String,
-    pub tags: Vec<String>
+    pub priority_tag: String,
+    // pub tags: Vec<String>
     // pub finish_by: i64:
 }
 
@@ -22,8 +23,9 @@ impl TodoItem {
             date_started: Local::now(),
             date_last_modified: Local::now(),
             // date_finished: ,
-            description: "".to_string(),
-            tags: Vec::new()
+            description: "-- press '<hotkey> to add description --".to_string(),
+            priority_tag: "-".to_string(),
+            // tags: Vec::new()
         };
     }
 
@@ -51,15 +53,28 @@ impl TodoItem {
         return self.date_last_modified.to_rfc2822();
     }
 
+    pub fn get_description(&self) -> &String {
+        return &self.description;
+    }
+
     pub fn add_description(&mut self, descript: String) {
         self.description =  descript;
         self.date_last_modified = Local::now() 
     }
 
-    pub fn add_tag(&mut self, tag: String) {
-        self.tags.push(tag);
-        self.date_last_modified = Local::now() 
+    pub fn get_priority_tag(&self) -> &String {
+        return &self.priority_tag;
     }
+
+    pub fn add_priority_tag(&mut self, tag: String) {
+        if tag == "1" || tag == "2" || tag == "3" {
+            self.priority_tag = tag;
+            self.date_last_modified = Local::now() 
+        } else {
+            println!("not valid priority tag");
+        }
+    }
+
 }
 
 //---------------------------------------------------------
@@ -116,6 +131,10 @@ impl TodoList {
             Some(i) => return i,
             None => return 0,
         };
+    }
+
+    pub fn get_task(&self, index: usize) -> &TodoItem {
+        return &self.uncompleted_list[index];
     }
 
     pub fn add_task(&mut self, name: String) {

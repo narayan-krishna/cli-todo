@@ -1,5 +1,5 @@
 use tui::widgets::{Widget, Cell, ListItem, List, Paragraph,
-                   ListState, Block, Table, Row, Borders};
+                   ListState, Block, Table, Row, Borders, Wrap};
 use tui::layout::{Alignment, Layout, Constraint, Direction, Rect};
 use tui::style::{Color, Modifier, Style};
 use tui::backend::Backend;
@@ -25,6 +25,7 @@ pub fn draw_list_mode<B: Backend>(f: &mut Frame<B>, todo: &mut TodoList) {
             ].as_ref()
         )
         .split(f.size());
+        // .style(Style::default().fg(Color::Black));
 
     // draw_todo_list(f, chunks_vertical[0], todo);
     draw_top_panel(f, chunks[0], todo);
@@ -78,7 +79,8 @@ pub fn draw_todo_list<B: Backend>(f: &mut Frame<B>, chunk: Rect, todo: &mut Todo
         .iter()
         .map(|p| {
             let descript: &String = &p.name;
-            let item = Text::raw(descript);
+            let prio_tag: &String = p.get_priority_tag();
+            let item = Text::raw("|".to_owned() + prio_tag + "| " + descript);
             ListItem::new(item)
         })
         .collect();
@@ -89,8 +91,8 @@ pub fn draw_todo_list<B: Backend>(f: &mut Frame<B>, chunk: Rect, todo: &mut Todo
         .title_alignment(Alignment::Center)
         .borders(Borders::ALL))
         .style(Style::default().fg(Color::White))
-        .highlight_style(Style::default().add_modifier(Modifier::BOLD))
-        .highlight_symbol(">> ");
+        .highlight_style(Style::default().add_modifier(Modifier::BOLD).bg(Color::Green));
+        // .highlight_symbol(">> ");
 
     f.render_stateful_widget(todo_list, chunk, &mut todo.state);
 }
@@ -102,12 +104,15 @@ pub fn draw_todo_info<B: Backend>(f: &mut Frame<B>, chunk: Rect, todo: &mut Todo
 
     let todo_descript_lines = vec![
         Spans::from(Span::raw("TASK: ".to_string() + &curr_item.get_name())),
+        Spans::from(Span::raw("TASK PRIORITY LEVEL: ".to_string() 
+                            + &curr_item.get_priority_tag())),
         Spans::from(""),
         Spans::from(Span::raw("Date created: ".to_string() 
                               + &curr_item.get_date_started_rfc())),
         Spans::from(Span::raw("Date last modified: ".to_string() 
                               + &curr_item.get_date_last_modified_rfc())),
-        Spans::from("Description: ".to_string()),
+        Spans::from(""),
+        Spans::from("Description: ".to_string() + &curr_item.get_description()),
     ];
 
     let todo_descript_paragraph = Paragraph::new(todo_descript_lines)
@@ -116,8 +121,8 @@ pub fn draw_todo_info<B: Backend>(f: &mut Frame<B>, chunk: Rect, todo: &mut Todo
         .title_alignment(Alignment::Center)
         .borders(Borders::ALL))
         .style(Style::default().fg(Color::White).bg(Color::Black))
-        .alignment(Alignment::Left);
-        // .wrap(Wrap { trim: true });
+        .alignment(Alignment::Left)
+        .wrap(Wrap { trim: true });
 
     f.render_widget(todo_descript_paragraph, chunk);
 }

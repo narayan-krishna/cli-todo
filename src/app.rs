@@ -9,7 +9,10 @@ use termion::{
     event::Key,
     raw::IntoRawMode,
     input::{TermRead},
-    screen::AlternateScreen 
+    screen::AlternateScreen,
+    cursor::HideCursor,
+    color,
+    style
 };
 
 use tui::Terminal;
@@ -71,19 +74,27 @@ impl App {
         let backend = TermionBackend::new(stdout);
         let mut terminal = Terminal::new(backend)?;
 
+
         self.todo_list.add_task("this is a task".to_string());
         self.todo_list.add_task("2 task 2".to_string());
         self.todo_list.add_task("task 3 3".to_string());
         self.todo_list.add_task("task 4 4 4 4".to_string());
         self.todo_list.add_task("5 task".to_string());
 
-        // self.todo_list
+        self.todo_list.uncompleted_list[1]
+            .add_description("this is a description for blah!".to_string());
+        self.todo_list.uncompleted_list[2]
+            .add_description("ANOTHA ONE THIS HERE DESCRIPI".to_string());
+        self.todo_list.uncompleted_list[4]
+            .add_description("3RQFIUE BACK IN DA HOOD".to_string());
 
 
         terminal.clear();
         let events = events(Duration::from_millis(50));
         loop {
             //register event
+            // terminal.show_cursor();
+            terminal.show_cursor();
             terminal.draw(|f| ui::draw(f, &mut self.todo_list))?;
             match events.recv()? {
                 Event::Input(key) => match key {
@@ -92,7 +103,10 @@ impl App {
                             self.quit = true;
                         }
                         if c == 'j' {
-                            self.todo_list.next();
+                            self.down();
+                        }
+                        if c == 'k' {
+                            self.up();
                         }
                     }
                     _ => {}
@@ -107,6 +121,11 @@ impl App {
         Ok(())
     }
 
+    fn down(&mut self) {
+        self.todo_list.next();
+    }
 
-
+    fn up(&mut self) {
+        self.todo_list.previous();
+    }
 }
