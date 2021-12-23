@@ -86,7 +86,16 @@ impl App {
         self.todo_list.uncompleted_list[2]
             .add_description("ANOTHA ONE THIS HERE DESCRIPI".to_string());
         self.todo_list.uncompleted_list[4]
-            .add_description("3RQFIUE BACK IN DA HOOD".to_string());
+            .add_description("3RQFIUE BACK IN DA HOODDDDDDDDDDDDDDDDDDDDDDDDDDDDD".to_string());
+            
+        self.todo_list.uncompleted_list[0]
+            .add_priority_tag("1".to_string());
+        self.todo_list.uncompleted_list[2]
+            .add_priority_tag("3".to_string());
+        self.todo_list.uncompleted_list[3]
+            .add_priority_tag("2".to_string());
+
+        
 
 
         terminal.clear();
