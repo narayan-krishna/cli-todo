@@ -1,5 +1,5 @@
-use tui::widgets::{Widget, Cell, ListItem, List, Paragraph,
-                   ListState, Block, Table, Row, Borders, Wrap};
+use tui::widgets::{Cell, ListItem, List, Paragraph, ListState, 
+                   Gauge, Block, Borders, Wrap};
 use tui::layout::{Alignment, Layout, Constraint, Direction, Rect};
 use tui::style::{Color, Modifier, Style};
 use tui::backend::Backend;
@@ -19,19 +19,6 @@ pub fn draw<B: Backend>(f: &mut Frame<B>, todo: &mut TodoList, options: &bool, o
     } else {
         draw_list_mode(f, todo);
     }
-}
-
-pub fn draw_corner_block<B: Backend>(f: &mut Frame<B>, rect: Rect) {
-    // let mut rect = f.size();
-    // rect.x = rect.width - 5;
-    // rect.y = rect.height - 5;
-    // rect.width = 5;
-    // rect.height = 5;
-
-    let corner_block = Block::default()
-        .border_style(Style::default().fg(Color::White))
-        .style(Style::default().bg(Color::Black));
-    f.render_widget(corner_block, rect);
 }
 
 pub fn draw_options_window<B: Backend>(f: &mut Frame<B>, options_state: &mut ListState) {
@@ -79,7 +66,7 @@ pub fn draw_list_mode<B: Backend>(f: &mut Frame<B>, todo: &mut TodoList) {
 
     // draw_todo_list(f, chunks_vertical[0], todo);
     draw_top_panel(f, chunks[0], todo);
-    draw_bot_panel(f, chunks[1]);
+    draw_bot_panel(f, chunks[1], todo);
 }
 
 
@@ -115,7 +102,75 @@ pub fn draw_top_panel<B: Backend>(f: &mut Frame<B>, chunk: Rect, todo: &mut Todo
     draw_todo_info(f, chunks[1], todo);
 }
 
-pub fn draw_bot_panel<B: Backend>(f: &mut Frame<B>, chunk: Rect) {
+
+//draw takes a frame, and a todo list object (contains a list, state)
+pub fn draw_todo_list<B: Backend>(f: &mut Frame<B>, chunk: Rect, todo: &mut TodoList) {
+    let items: Vec<ListItem> = todo
+        .uncompleted_list
+        .iter()
+        .map(|p| {
+            let descript: &String = &p.name;
+            let prio_tag: &String = p.get_priority_tag();
+            let completion_tag: String;
+            if p.completed {
+                completion_tag = "x".to_string();
+            } else {
+                completion_tag = " ".to_string();
+            }
+            let item = Text::raw("|".to_owned() + prio_tag + "|" 
+                + &completion_tag + "| " + descript);
+            ListItem::new(item)
+        })
+        .collect();
+
+    let todo_list = List::new(items)
+        .block(Block::default()
+        .title(Span::raw(&todo.name))
+        .title_alignment(Alignment::Center))
+        // .borders(Borders::ALL))
+        .style(Style::default())
+        .highlight_style(Style::default().add_modifier(Modifier::BOLD).bg(Color::Blue));
+        // .highlight_symbol(">> ");
+
+    f.render_stateful_widget(todo_list, chunk, &mut todo.state);
+}
+
+pub fn draw_todo_info<B: Backend>(f: &mut Frame<B>, chunk: Rect, todo: &mut TodoList) {
+
+
+    //change to lambda function
+    let mut todo_descript_lines = Vec::new();
+    if todo.uncompleted_list_length == 0 {
+        todo_descript_lines.push(Spans::from("task lisk empty"));
+    }  else {
+        let curr_index = todo.current_task_index();
+        let curr_item: &TodoItem = &todo.uncompleted_list[curr_index];
+
+        todo_descript_lines.push(Spans::from(Span::raw("TASK: ".to_string() + &curr_item.get_name())));
+        todo_descript_lines.push(Spans::from(Span::raw("TASK PRIORITY LEVEL: ".to_string() 
+                            + &curr_item.get_priority_tag())));
+        todo_descript_lines.push(Spans::from(""));
+        todo_descript_lines.push(Spans::from(Span::raw("Date created: ".to_string() 
+                            + &curr_item.get_date_started_rfc())));
+        todo_descript_lines.push(Spans::from(Span::raw("Date last modified: ".to_string() 
+                            + &curr_item.get_date_last_modified_rfc())));
+        todo_descript_lines.push(Spans::from(""));
+        todo_descript_lines.push(Spans::from("Description: ".to_string() + &curr_item.get_description()));
+    }
+
+    let todo_descript_paragraph = Paragraph::new(todo_descript_lines)
+        .block(Block::default()
+        .title("Task Report")
+        .title_alignment(Alignment::Center)
+        .borders(Borders::ALL))
+        .style(Style::default())
+        .alignment(Alignment::Left)
+        .wrap(Wrap { trim: true });
+
+    f.render_widget(todo_descript_paragraph, chunk);
+}
+
+pub fn draw_bot_panel<B: Backend>(f: &mut Frame<B>, chunk: Rect, todo: &mut TodoList) {
     // let mut chunks = Layout::default()
     //     .direction(Direction::Horizontal)
     //     // .margin(1)
@@ -131,9 +186,25 @@ pub fn draw_bot_panel<B: Backend>(f: &mut Frame<B>, chunk: Rect) {
 
     // draw_command(f, chunks[0]);
     // draw_corner_block(f, chunks[1]);
-    draw_corner_block(f, chunk);
+    // draw_corner_block(f, chunk);
     // draw_date_time(f, chunks[1]);
+    draw_gauge_line(f, chunk, todo);
 }
+
+pub fn draw_corner_block<B: Backend>(f: &mut Frame<B>, mut rect: Rect) {
+    // let mut rect = f.size();
+    // rect.x = rect.width - 5;
+    let height_boost = 1; 
+    rect.y = rect.y - height_boost;
+    // rect.width = 5;
+    rect.height = rect.height + height_boost;
+
+    let corner_block = Block::default()
+        .border_style(Style::default().fg(Color::White))
+        .style(Style::default().bg(Color::Red));
+    f.render_widget(corner_block, rect);
+}
+
 
 
 pub fn draw_command<B: Backend>(f: &mut Frame<B>, chunk: Rect) {
@@ -143,61 +214,13 @@ pub fn draw_command<B: Backend>(f: &mut Frame<B>, chunk: Rect) {
     f.render_widget(block, chunk);
 }
 
-//draw takes a frame, and a todo list object (contains a list, state)
-pub fn draw_todo_list<B: Backend>(f: &mut Frame<B>, chunk: Rect, todo: &mut TodoList) {
-    let items: Vec<ListItem> = todo
-        .uncompleted_list
-        .iter()
-        .map(|p| {
-            let descript: &String = &p.name;
-            let prio_tag: &String = p.get_priority_tag();
-            let item = Text::raw("|".to_owned() + prio_tag + "| " + descript);
-            ListItem::new(item)
-        })
-        .collect();
+pub fn draw_gauge_line<B: Backend>(f: &mut Frame<B>, chunk: Rect, todo: &mut TodoList) {
+    let gauge = Gauge::default()
+        .block(Block::default().title("Gauge1").borders(Borders::ALL))
+        .gauge_style(Style::default().fg(Color::Yellow))
+        .ratio(todo.completion_progress);
 
-    let todo_list = List::new(items)
-        .block(Block::default()
-        .title(Span::raw(&todo.name))
-        .title_alignment(Alignment::Center)
-        .borders(Borders::ALL))
-        .style(Style::default())
-        .highlight_style(Style::default().add_modifier(Modifier::BOLD).bg(Color::Blue));
-        // .highlight_symbol(">> ");
-
-    f.render_stateful_widget(todo_list, chunk, &mut todo.state);
+    f.render_widget(gauge, chunk);
 }
-
-pub fn draw_todo_info<B: Backend>(f: &mut Frame<B>, chunk: Rect, todo: &mut TodoList) {
-
-    let curr_index = todo.current_task_index();
-    let curr_item: &TodoItem = &todo.uncompleted_list[curr_index];
-
-    let todo_descript_lines = vec![
-        Spans::from(Span::raw("TASK: ".to_string() + &curr_item.get_name())),
-        Spans::from(Span::raw("TASK PRIORITY LEVEL: ".to_string() 
-                            + &curr_item.get_priority_tag())),
-        Spans::from(""),
-        Spans::from(Span::raw("Date created: ".to_string() 
-                              + &curr_item.get_date_started_rfc())),
-        Spans::from(Span::raw("Date last modified: ".to_string() 
-                              + &curr_item.get_date_last_modified_rfc())),
-        Spans::from(""),
-        Spans::from("Description: ".to_string() + &curr_item.get_description()),
-    ];
-
-    let todo_descript_paragraph = Paragraph::new(todo_descript_lines)
-        .block(Block::default()
-        .title("Task Report")
-        .title_alignment(Alignment::Center)
-        .borders(Borders::ALL))
-        .style(Style::default().bg(Color::Black))
-        .alignment(Alignment::Left)
-        .wrap(Wrap { trim: true });
-
-    f.render_widget(todo_descript_paragraph, chunk);
-}
-
-// pub fn draw_date_time<B: Backend>(f: &mut Frame<B>, chunk: Rect, todo: &mut TodoList) {
 
 // }

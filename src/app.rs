@@ -137,29 +137,29 @@ impl App {
         let mut terminal = Terminal::new(backend)?;
 
 
-        self.todo_list.add_task("this is a task".to_string());
-        self.todo_list.add_task("2 task 2".to_string());
-        self.todo_list.add_task("task 3 3".to_string());
-        self.todo_list.add_task("task 4 4 4 4".to_string());
-        self.todo_list.add_task("5 task".to_string());
+        // self.todo_list.add_task("this is a task".to_string());
+        // self.todo_list.add_task("2 task 2".to_string());
+        // self.todo_list.add_task("task 3 3".to_string());
+        // self.todo_list.add_task("task 4 4 4 4".to_string());
+        // self.todo_list.add_task("5 task".to_string());
 
-        self.todo_list.uncompleted_list[1]
-            .add_description("this is a description for blah!".to_string());
-        self.todo_list.uncompleted_list[2]
-            .add_description("ANOTHA ONE THIS HERE DESCRIPI".to_string());
-        self.todo_list.uncompleted_list[4]
-            .add_description("3RQFIUE BACK IN DA HOODDDDDDDDDDDDDDDDDDDDDDDDDDDDD".to_string());
+        // self.todo_list.uncompleted_list[1]
+        //     .add_description("this is a description for blah!".to_string());
+        // self.todo_list.uncompleted_list[2]
+        //     .add_description("ANOTHA ONE THIS HERE DESCRIPI".to_string());
+        // self.todo_list.uncompleted_list[4]
+        //     .add_description("3RQFIUE BACK IN DA HOODDDDDDDDDDDDDDDDDDDDDDDDDDDDD".to_string());
             
-        self.todo_list.uncompleted_list[0]
-            .add_priority_tag("1".to_string());
-        self.todo_list.uncompleted_list[2]
-            .add_priority_tag("3".to_string());
-        self.todo_list.uncompleted_list[3]
-            .add_priority_tag("2".to_string());
+        // self.todo_list.uncompleted_list[0]
+        //     .add_priority_tag("1".to_string());
+        // self.todo_list.uncompleted_list[2]
+        //     .add_priority_tag("3".to_string());
+        // self.todo_list.uncompleted_list[3]
+        //     .add_priority_tag("2".to_string());
 
-        terminal.clear();
+        terminal.clear()?;
         let events = events(Duration::from_millis(50));
-        terminal.hide_cursor(); //LINE OF GOD
+        terminal.hide_cursor()?; //LINE OF GOD
         loop {
             //register event
             // terminal.show_cursor();
@@ -185,6 +185,12 @@ impl App {
                         }
                         if c == 'd' {
                             self.remove();
+                        }
+                        if c == 'v' {
+                            self.mark();
+                        }
+                        if c == '1' || c == '2' || c == '3' {
+                            self.nums(c);
                         }
                     }
                     _ => {}
@@ -228,6 +234,22 @@ impl App {
             {}
         } else {
             self.todo_list.remove();
+        }
+    }
+
+    fn mark(&mut self) {
+        if self.show_options == true {
+            {}
+        } else {
+            self.todo_list.mark_completeness();
+        }
+    }
+
+    fn nums(&mut self, num: char) {
+        if self.show_options == true {
+            {}
+        } else {
+            self.todo_list.mark_with_tag(num);
         }
     }
 }

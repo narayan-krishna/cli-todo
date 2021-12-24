@@ -1,5 +1,5 @@
 use tui::widgets::{ListState};
-use chrono::{Local, Utc, DateTime};
+use chrono::{Local, DateTime};
 
 //---------------------------------------------------------
 
@@ -63,6 +63,10 @@ impl TodoItem {
         }
     }
 
+    pub fn mark_completeness(&mut self) {
+        self.completed = !self.completed;
+    }
+
 }
 
 //---------------------------------------------------------
@@ -73,6 +77,9 @@ pub struct TodoList {
     pub uncompleted_list_length: usize,
     pub completed_list: Vec<TodoItem>,
     pub state: ListState,
+    pub completion_progress: f64,
+    pub tasks_completed: usize,
+    pub current_task_index: usize
     // index: i64
 }
 
@@ -84,36 +91,43 @@ impl TodoList {
             uncompleted_list_length: 0,
             completed_list: Vec::new(), 
             state: ListState::default(),
+            completion_progress: 0.0,
+            tasks_completed: 0,
+            current_task_index: 0
             // index: 0;
         }
     }
 
     pub fn next(&mut self) {
-        let i = match self.state.selected() {
-            Some(i) => {
-                if i >= self.uncompleted_list.len() - 1 {
-                    0
-                } else {
-                    i + 1
+        if self.uncompleted_list_length != 0 {
+            let i = match self.state.selected() {
+                Some(i) => {
+                    if i >= self.uncompleted_list.len() - 1 {
+                        0
+                    } else {
+                        i + 1
+                    }
                 }
-            }
-            None => 0,
-        };
-        self.state.select(Some(i));
+                None => 0,
+            };
+            self.state.select(Some(i));
+        }
     }
 
     pub fn previous(&mut self) {
-        let i = match self.state.selected() {
-            Some(i) => {
-                if i == 0 {
-                   self.uncompleted_list.len() - 1 
-                } else {
-                    i - 1 
+        if self.uncompleted_list_length != 0 {
+            let i = match self.state.selected() {
+                Some(i) => {
+                    if i == 0 {
+                    self.uncompleted_list.len() - 1 
+                    } else {
+                        i - 1 
+                    }
                 }
-            }
-            None => 0,
-        };
-        self.state.select(Some(i));
+                None => 0,
+            };
+            self.state.select(Some(i));
+        }
     }
 
     pub fn current_task_index(&self) -> usize {
@@ -138,6 +152,7 @@ impl TodoList {
             self.state.select(Some(index));
         }
         self.uncompleted_list_length = self.uncompleted_list_length + 1;
+        self.update_completion_progress(true);
     }
 
     pub fn add_task_default(&mut self) {
@@ -147,25 +162,57 @@ impl TodoList {
     }
 
     pub fn remove(&mut self) {
+        if self.uncompleted_list_length != 0 {
+            let i = match self.state.selected() {
+                Some(i) => {
+                    self.uncompleted_list.remove(i);
+                    if self.uncompleted_list_length - 1 == i {
+                        self.state.select(Some(0));
+                    } else {
+                        // self.next();
+                    }
+                } 
+                None => println!("requires an element to remove!"),
+            };
+            self.uncompleted_list_length = self.uncompleted_list_length - 1;
+        }
+    }
+
+    pub fn mark_completeness(&mut self) {
         let i = match self.state.selected() {
             Some(i) => {
-                self.uncompleted_list.remove(i);
-                if self.uncompleted_list_length - 1 == i {
-                    self.state.select(Some(0));
-                } else {
-                    // self.next();
-                }
+                let progress_direction = self.uncompleted_list[i].completed;
+                self.update_completion_progress(progress_direction);
+                self.uncompleted_list[i].mark_completeness();
             } 
             None => println!("requires an element to remove!"),
         };
-        self.uncompleted_list_length = self.uncompleted_list_length - 1;
     }
 
-    // pub fn mark_as_complete(&mut self, index: usize) {
-    //     if x > 0 && x < list.size() { 
-    //     }
-    //     self.list[index].completed = 'x';
-    // }
+    pub fn mark_with_tag(&mut self, tag: char) {
+        let string_tag = tag.to_string();
+        let i = match self.state.selected() {
+            Some(i) => {
+                self.uncompleted_list[i].add_priority_tag(string_tag);
+            } 
+            None => println!("requires an element to remove!"),
+        };
+    }
+
+    /*replace bool with enum*/
+    pub fn update_completion_progress(&mut self, progress_direction: bool) {
+        // true -> marked -> progress direction -> down
+        if progress_direction == true {
+            if self.tasks_completed != 0 {
+                self.tasks_completed = self.tasks_completed - 1;
+            }
+        } else {
+            self.tasks_completed = self.tasks_completed + 1;
+        }
+        let tasks_completed_f64: f64 = self.tasks_completed as f64;
+        let length_f64: f64 = self.uncompleted_list_length as f64;
+        self.completion_progress = tasks_completed_f64/length_f64;
+    }
 
     // pub fn mark_as_uncomplete(&mut self, index: usize) {
     //     // if x > 0 && x < list.size()
