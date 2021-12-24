@@ -15,6 +15,8 @@ use termion::{
     style
 };
 
+use tui::widgets::{ListState};
+
 use tui::Terminal;
 use tui::backend::TermionBackend;
 
@@ -51,8 +53,57 @@ fn events(tick_rate: Duration) -> mpsc::Receiver<Event> {
     rx
 }
 
+pub struct Options {
+    pub state: ListState,
+    // index: i64
+}
+
+impl Options {
+    pub fn new() -> Options {
+        return Options{
+           state: ListState::default(),
+            // index: 0;
+        }
+    }
+
+    pub fn next(&mut self) {
+        let i = match self.state.selected() {
+            Some(i) => {
+                if i >= 3 {
+                    0
+                } else {
+                    i + 1
+                }
+            }
+            None => 0,
+        };
+        self.state.select(Some(i));
+    }
+
+    pub fn previous(&mut self) {
+        let i = match self.state.selected() {
+            Some(i) => {
+                if i == 0 {
+                    3
+                } else {
+                    i - 1 
+                }
+            }
+            None => 0,
+        };
+        self.state.select(Some(i));
+    }
+
+    // pub fn match_option(&mut self) {
+    //     let i = match self.state.selected() {
+
+    //     };
+    // }
+}
+
 enum Mode {
-    ListMode
+    ListMode,
+    OptionMode
 }
 
 //---------------------------------------------------------
@@ -60,8 +111,10 @@ enum Mode {
 pub struct App {
     pub todo_list: TodoList,
     pub todo_lists: Vec<TodoList>,
-    quit: bool,
-    options: bool,
+    pub options: Options,
+    quit_state: bool,
+    show_options: bool,
+    mode: Mode
 }
 
 impl App {
@@ -69,8 +122,10 @@ impl App {
         return App { 
             todo_list: TodoList::new(),
             todo_lists: Vec::new(),
-            options: false,
-            quit: false,
+            options: Options::new(),
+            show_options: false,
+            quit_state: false,
+            mode: Mode::ListMode
         }
     }
 
@@ -109,15 +164,15 @@ impl App {
             //register event
             // terminal.show_cursor();
             // terminal.set_cursor(100,100);
-            terminal.draw(|f| ui::draw(f, &mut self.todo_list, &self.options))?;
+            terminal.draw(|f| ui::draw(f, &mut self.todo_list, &self.show_options, &mut self.options.state))?;
             match events.recv()? {
                 Event::Input(key) => match key {
                     Key::Char(c) => {
                         if c == 'q' {
-                            self.quit = true;
+                            self.quit_state = true;
                         }
                         if c == 'o' {
-                            self.options = !self.options;
+                            self.show_options = !self.show_options;
                         }
                         if c == 'j' {
                             self.down();
@@ -128,12 +183,15 @@ impl App {
                         if c == 'a' {
                             self.add();
                         }
+                        if c == 'd' {
+                            self.remove();
+                        }
                     }
                     _ => {}
                 }
                 Event::Tick => {},
             }
-            if self.quit == true {
+            if self.quit_state == true {
                 return Ok(())
             }
         }
@@ -142,14 +200,34 @@ impl App {
     }
 
     fn down(&mut self) {
-        self.todo_list.next();
+        if self.show_options == true {
+            self.options.next();
+        } else {
+            self.todo_list.next();
+        }
     }
 
     fn up(&mut self) {
-        self.todo_list.previous();
+        if self.show_options == true {
+            self.options.previous();
+        } else {
+            self.todo_list.previous();
+        }
     }
 
     fn add(&mut self) {
-        self.todo_list.add_task_default();
+        if self.show_options == true {
+            {}
+        } else {
+            self.todo_list.add_task("default task".to_string());
+        }
+    }
+
+    fn remove(&mut self) {
+        if self.show_options == true {
+            {}
+        } else {
+            self.todo_list.remove();
+        }
     }
 }

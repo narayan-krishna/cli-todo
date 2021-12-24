@@ -8,9 +8,14 @@ use tui::Frame;
 
 use crate::todo::{TodoList, TodoItem};
 
-pub fn draw<B: Backend>(f: &mut Frame<B>, todo: &mut TodoList, options: &bool) {
+// enum Mode {
+//     ListMode,
+//     OptionMode
+// }
+
+pub fn draw<B: Backend>(f: &mut Frame<B>, todo: &mut TodoList, options: &bool, options_state: &mut ListState) {
     if options == &true {
-        draw_options_window(f);
+        draw_options_window(f, options_state);
     } else {
         draw_list_mode(f, todo);
     }
@@ -29,7 +34,7 @@ pub fn draw_corner_block<B: Backend>(f: &mut Frame<B>, rect: Rect) {
     f.render_widget(corner_block, rect);
 }
 
-pub fn draw_options_window<B: Backend>(f: &mut Frame<B>) {
+pub fn draw_options_window<B: Backend>(f: &mut Frame<B>, options_state: &mut ListState) {
     // let options: Vec<String> = todo
     //     .uncompleted_list
     //     .iter()
@@ -45,20 +50,15 @@ pub fn draw_options_window<B: Backend>(f: &mut Frame<B>) {
     let offset = 15;
     let rect = Rect::new(frame_top_length/4 + offset, 5, (frame_top_length/2) - (offset*2), 20);
 
-    let items = [ListItem::new("OPTION 1"), ListItem::new("OPTION 2"),
-                 ListItem::new("OPTION 3"), ListItem::new("OPTION 4")];
+    let items = [ListItem::new("LOAD FILE"), ListItem::new("RECENT FILES"),
+                 ListItem::new("KEYBINDS"), ListItem::new("CREDITS")];
 
-    let todo_list = List::new(items)
+    let option_list = List::new(items)
         .block(Block::default())
-        // .title(Span::raw("Options"))
-        // .title_alignment(Alignment::Center)
-        // .borders(Borders::ALL))
-        .style(Style::default().fg(Color::White).bg(Color::Black));
-        // .highlight_style(Style::default().add_modifier(Modifier::BOLD).bg(Color::Green));
-        // .highlight_symbol(">> ");
+        .style(Style::default())
+        .highlight_style(Style::default().add_modifier(Modifier::BOLD).bg(Color::Blue));
 
-    f.render_widget(todo_list, rect);
-
+    f.render_stateful_widget(option_list, rect, options_state);
 }
 
 pub fn draw_list_mode<B: Backend>(f: &mut Frame<B>, todo: &mut TodoList) {

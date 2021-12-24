@@ -23,23 +23,11 @@ impl TodoItem {
             date_started: Local::now(),
             date_last_modified: Local::now(),
             // date_finished: ,
-            description: "-- press '<hotkey> to add description --".to_string(),
+            description: "-- press <hotkey> to add description --".to_string(),
             priority_tag: "-".to_string(),
             // tags: Vec::new()
         };
     }
-
-    // fn new(name: String, description: String) -> TodoItem {
-    //     return TodoItem {
-    //         name: name,
-    //         completed: false,
-    //         date_started: Local::now(),
-    //         date_last_modified: Local::now(),
-    //         // date_finished: ,
-    //         description: description,
-    //         tags: Vec::new()
-    //     };
-    // }
 
     pub fn get_name(&self) -> &String {
         return &self.name;
@@ -82,6 +70,7 @@ impl TodoItem {
 pub struct TodoList {
     pub name: String,
     pub uncompleted_list: Vec<TodoItem>,
+    pub uncompleted_list_length: usize,
     pub completed_list: Vec<TodoItem>,
     pub state: ListState,
     // index: i64
@@ -92,6 +81,7 @@ impl TodoList {
         return TodoList{
             name: "New List".to_string(),
             uncompleted_list: Vec::new(), 
+            uncompleted_list_length: 0,
             completed_list: Vec::new(), 
             state: ListState::default(),
             // index: 0;
@@ -139,8 +129,15 @@ impl TodoList {
 
     pub fn add_task(&mut self, name: String) {
         let todo_item = TodoItem::new(name);
-        self.uncompleted_list.push(todo_item);
-        self.state.select(Some(self.uncompleted_list.len() - 1));
+        if self.uncompleted_list_length == 0 {
+            self.uncompleted_list.push(todo_item);
+            self.state.select(Some(0));
+        } else {
+            let index = self.current_task_index() + 1;
+            self.uncompleted_list.insert(index, todo_item);
+            self.state.select(Some(index));
+        }
+        self.uncompleted_list_length = self.uncompleted_list_length + 1;
     }
 
     pub fn add_task_default(&mut self) {
@@ -153,12 +150,16 @@ impl TodoList {
         let i = match self.state.selected() {
             Some(i) => {
                 self.uncompleted_list.remove(i);
+                if self.uncompleted_list_length - 1 == i {
+                    self.state.select(Some(0));
+                } else {
+                    // self.next();
+                }
             } 
             None => println!("requires an element to remove!"),
         };
+        self.uncompleted_list_length = self.uncompleted_list_length - 1;
     }
-
-
 
     // pub fn mark_as_complete(&mut self, index: usize) {
     //     if x > 0 && x < list.size() { 
