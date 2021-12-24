@@ -50,12 +50,18 @@ fn events(tick_rate: Duration) -> mpsc::Receiver<Event> {
     });
     rx
 }
+
+enum Mode {
+    ListMode
+}
+
 //---------------------------------------------------------
 
 pub struct App {
     pub todo_list: TodoList,
     pub todo_lists: Vec<TodoList>,
     quit: bool,
+    options: bool,
 }
 
 impl App {
@@ -63,6 +69,7 @@ impl App {
         return App { 
             todo_list: TodoList::new(),
             todo_lists: Vec::new(),
+            options: false,
             quit: false,
         }
     }
@@ -95,9 +102,6 @@ impl App {
         self.todo_list.uncompleted_list[3]
             .add_priority_tag("2".to_string());
 
-        
-
-
         terminal.clear();
         let events = events(Duration::from_millis(50));
         terminal.hide_cursor(); //LINE OF GOD
@@ -105,18 +109,24 @@ impl App {
             //register event
             // terminal.show_cursor();
             // terminal.set_cursor(100,100);
-            terminal.draw(|f| ui::draw(f, &mut self.todo_list))?;
+            terminal.draw(|f| ui::draw(f, &mut self.todo_list, &self.options))?;
             match events.recv()? {
                 Event::Input(key) => match key {
                     Key::Char(c) => {
                         if c == 'q' {
                             self.quit = true;
                         }
+                        if c == 'o' {
+                            self.options = !self.options;
+                        }
                         if c == 'j' {
                             self.down();
                         }
                         if c == 'k' {
                             self.up();
+                        }
+                        if c == 'a' {
+                            self.add();
                         }
                     }
                     _ => {}
@@ -137,5 +147,9 @@ impl App {
 
     fn up(&mut self) {
         self.todo_list.previous();
+    }
+
+    fn add(&mut self) {
+        self.todo_list.add_task_default();
     }
 }

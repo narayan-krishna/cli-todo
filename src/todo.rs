@@ -143,6 +143,12 @@ impl TodoList {
         self.state.select(Some(self.uncompleted_list.len() - 1));
     }
 
+    pub fn add_task_default(&mut self) {
+        let todo_item = TodoItem::new("Default Task".to_string());
+        self.uncompleted_list.push(todo_item);
+        self.state.select(Some(self.uncompleted_list.len() - 1));
+    }
+
     pub fn remove(&mut self) {
         let i = match self.state.selected() {
             Some(i) => {
@@ -151,6 +157,8 @@ impl TodoList {
             None => println!("requires an element to remove!"),
         };
     }
+
+
 
     // pub fn mark_as_complete(&mut self, index: usize) {
     //     if x > 0 && x < list.size() { 
