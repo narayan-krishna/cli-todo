@@ -1,5 +1,5 @@
 use tui::widgets::{Cell, ListItem, List, Paragraph, ListState, 
-                   Gauge, Block, Borders, Wrap};
+                   Gauge, Block, Clear, Borders, Wrap};
 use tui::layout::{Alignment, Layout, Constraint, Direction, Rect};
 use tui::style::{Color, Modifier, Style};
 use tui::backend::Backend;
@@ -7,21 +7,25 @@ use tui::text::{Span, Spans, Text};
 use tui::Frame;
 
 use crate::todo::{TodoList, TodoItem};
+use crate::app::{App, Mode};
 
 // enum Mode {
 //     ListMode,
 //     OptionMode
 // }
-
-pub fn draw<B: Backend>(f: &mut Frame<B>, todo: &mut TodoList, options: &bool, options_state: &mut ListState) {
-    if options == &true {
-        draw_options_window(f, options_state);
-    } else {
-        draw_list_mode(f, todo);
+pub fn draw<B: Backend>(f: &mut Frame<B>, app: &mut App) {
+    match app.current_mode {
+        Mode::OptionMode => {
+            draw_options_mode(f, &mut app.options.state);
+        },
+        Mode::ListMode => {
+            draw_list_mode(f, &mut app.todo_list);
+        },
+        _ => {}
     }
 }
 
-pub fn draw_options_window<B: Backend>(f: &mut Frame<B>, options_state: &mut ListState) {
+pub fn draw_options_mode<B: Backend>(f: &mut Frame<B>, options_state: &mut ListState) {
     // let options: Vec<String> = todo
     //     .uncompleted_list
     //     .iter()
@@ -43,13 +47,14 @@ pub fn draw_options_window<B: Backend>(f: &mut Frame<B>, options_state: &mut Lis
     let option_list = List::new(items)
         .block(Block::default())
         .style(Style::default())
-        .highlight_style(Style::default().add_modifier(Modifier::BOLD).bg(Color::Blue));
+        .highlight_style(Style::default().add_modifier(Modifier::BOLD).bg(Color::Green));
 
+    // f.render_widget(Clear, rect);
     f.render_stateful_widget(option_list, rect, options_state);
 }
 
 pub fn draw_list_mode<B: Backend>(f: &mut Frame<B>, todo: &mut TodoList) {
-    let chunks = Layout::default()
+    let mut chunks = Layout::default()
         .direction(Direction::Vertical)
         // .margin(2)// -- LINE OF DEATH
         .constraints(
@@ -66,6 +71,14 @@ pub fn draw_list_mode<B: Backend>(f: &mut Frame<B>, todo: &mut TodoList) {
 
     // draw_todo_list(f, chunks_vertical[0], todo);
     draw_top_panel(f, chunks[0], todo);
+
+    let offset = 1; 
+    chunks[1].y = chunks[1].y - offset;
+    chunks[1].height = chunks[1].height + offset - 1;
+
+    // chunks[1].width = chunks[1].width - (offset*2);
+    // chunks[1].x = chunks[1].x + offset;
+
     draw_bot_panel(f, chunks[1], todo);
 }
 
@@ -87,11 +100,11 @@ pub fn draw_top_panel<B: Backend>(f: &mut Frame<B>, chunk: Rect, todo: &mut Todo
     chunks[0].width = chunks[0].width - (offset*2);
     chunks[0].x = chunks[0].x + offset;
 
-    chunks[0].height = chunks[0].height - (offset*2);
+    chunks[0].height = chunks[0].height - (offset*2) - 1;
     chunks[0].y = chunks[0].y + offset;
 
-    chunks[1].width = chunks[1].width - (offset*2);
-    chunks[1].x = chunks[1].x + offset;
+    // chunks[1].width = chunks[1].width - (offset*2);
+    // chunks[1].x = chunks[1].x + offset;
 
     chunks[1].height = chunks[1].height - (offset*2);
     chunks[1].y = chunks[1].y + offset;
@@ -129,7 +142,7 @@ pub fn draw_todo_list<B: Backend>(f: &mut Frame<B>, chunk: Rect, todo: &mut Todo
         .title_alignment(Alignment::Center))
         // .borders(Borders::ALL))
         .style(Style::default())
-        .highlight_style(Style::default().add_modifier(Modifier::BOLD).bg(Color::Blue));
+        .highlight_style(Style::default().add_modifier(Modifier::BOLD).bg(Color::Green));
         // .highlight_symbol(">> ");
 
     f.render_stateful_widget(todo_list, chunk, &mut todo.state);
@@ -191,18 +204,18 @@ pub fn draw_bot_panel<B: Backend>(f: &mut Frame<B>, chunk: Rect, todo: &mut Todo
     draw_gauge_line(f, chunk, todo);
 }
 
-pub fn draw_corner_block<B: Backend>(f: &mut Frame<B>, mut rect: Rect) {
+pub fn draw_corner_block<B: Backend>(f: &mut Frame<B>, mut chunk: Rect) {
     // let mut rect = f.size();
     // rect.x = rect.width - 5;
     let height_boost = 1; 
-    rect.y = rect.y - height_boost;
+    chunk.y = chunk.y - height_boost;
     // rect.width = 5;
-    rect.height = rect.height + height_boost;
+    chunk.height = chunk.height + height_boost;
 
     let corner_block = Block::default()
         .border_style(Style::default().fg(Color::White))
         .style(Style::default().bg(Color::Red));
-    f.render_widget(corner_block, rect);
+    f.render_widget(corner_block, chunk);
 }
 
 
@@ -214,9 +227,9 @@ pub fn draw_command<B: Backend>(f: &mut Frame<B>, chunk: Rect) {
     f.render_widget(block, chunk);
 }
 
-pub fn draw_gauge_line<B: Backend>(f: &mut Frame<B>, chunk: Rect, todo: &mut TodoList) {
+pub fn draw_gauge_line<B: Backend>(f: &mut Frame<B>, mut chunk: Rect, todo: &mut TodoList) {
     let gauge = Gauge::default()
-        .block(Block::default().title("Gauge1").borders(Borders::ALL))
+        .block(Block::default().title("Completion Gauge").borders(Borders::ALL))
         .gauge_style(Style::default().fg(Color::Yellow))
         .ratio(todo.completion_progress);
 
