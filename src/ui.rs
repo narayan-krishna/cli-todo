@@ -21,7 +21,11 @@ pub fn draw<B: Backend>(f: &mut Frame<B>, app: &mut App) {
         Mode::ListMode => {
             draw_list_mode(f, &mut app.todo_list);
         },
-        _ => {}
+        Mode::InputMode => {
+            draw_list_mode(f, &mut app.todo_list);
+            draw_input_mode(f, &mut app.input);
+        },
+        _ => draw_list_mode(f, &mut app.todo_list),
     }
 }
 
@@ -225,6 +229,29 @@ pub fn draw_command<B: Backend>(f: &mut Frame<B>, chunk: Rect) {
             .title("Command")
             .borders(Borders::ALL);
     f.render_widget(block, chunk);
+}
+pub fn draw_input_mode<B: Backend>(f: &mut Frame<B>, input: &mut String) {
+
+    let frame_top_length = f.size().width;
+    let offset = 15;
+    let chunk = Rect::new(frame_top_length/4 + offset, 5, (frame_top_length/2) - (offset*2), 10);
+
+    //change to lambda function
+    let input_insert: &String = &input;
+    let input_line = vec![Spans::from(Span::raw(input_insert))];
+    // input_line.push(Spans::from(Span::raw(input)));
+
+    let todo_descript_paragraph = Paragraph::new(input_line)
+        .block(Block::default()
+        .title("Input")
+        .title_alignment(Alignment::Left)
+        .borders(Borders::ALL))
+        .style(Style::default())
+        .alignment(Alignment::Left)
+        .wrap(Wrap { trim: true });
+
+    f.render_widget(Clear, chunk);
+    f.render_widget(todo_descript_paragraph, chunk);
 }
 
 pub fn draw_gauge_line<B: Backend>(f: &mut Frame<B>, mut chunk: Rect, todo: &mut TodoList) {

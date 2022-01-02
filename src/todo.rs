@@ -33,6 +33,11 @@ impl TodoItem {
         return &self.name;
     }
 
+    pub fn set_name(&mut self, name: String) {
+        self.name = name;
+        self.date_last_modified = Local::now() 
+    }
+
     pub fn get_date_started_rfc(&self) -> String {
         return self.date_started.to_rfc2822();
     }
@@ -198,6 +203,18 @@ impl TodoList {
             None => println!("requires an element to remove!"),
         };
     }
+
+    pub fn change_current_task_name(&mut self, name: String) {
+        let i = match self.state.selected() {
+            Some(i) => {
+                self.uncompleted_list[i].set_name(name);
+            } 
+            None => println!("requires an element to remove!"),
+        };
+    }
+
+    // pub fn clear_task_name(&mut self) {
+
 
     /*replace bool with enum*/
     pub fn update_completion_progress(&mut self, progress_direction: bool) {

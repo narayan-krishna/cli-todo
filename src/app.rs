@@ -20,6 +20,7 @@ use tui::widgets::{ListState};
 use tui::Terminal;
 use tui::backend::TermionBackend;
 
+use crate::options::Options;
 use crate::todo::TodoList;
 use crate::ui;
 
@@ -53,59 +54,17 @@ fn events(tick_rate: Duration) -> mpsc::Receiver<Event> {
     rx
 }
 
-pub struct Options {
-    pub state: ListState,
-    // index: i64
-}
-
-impl Options {
-    pub fn new() -> Options {
-        return Options{
-           state: ListState::default(),
-            // index: 0;
-        }
-    }
-
-    pub fn next(&mut self) {
-        let i = match self.state.selected() {
-            Some(i) => {
-                if i >= 3 {
-                    0
-                } else {
-                    i + 1
-                }
-            }
-            None => 0,
-        };
-        self.state.select(Some(i));
-    }
-
-    pub fn previous(&mut self) {
-        let i = match self.state.selected() {
-            Some(i) => {
-                if i == 0 {
-                    3
-                } else {
-                    i - 1 
-                }
-            }
-            None => 0,
-        };
-        self.state.select(Some(i));
-    }
-
-    // pub fn match_option(&mut self) {
-    //     let i = match self.state.selected() {
-
-    //     };
-    // }
-}
-
 //---------------------------------------------------------
 
 pub enum Mode {
     ListMode,
-    OptionMode
+    OptionMode,
+    InputMode
+}
+
+pub enum InputAction {
+    ChangeName,
+    ChangeDescription
 }
 
 pub struct App {
@@ -113,6 +72,7 @@ pub struct App {
     pub todo_lists: Vec<TodoList>,
     pub options: Options,
     pub quit_state: bool,
+    pub input: String,
     pub previous_mode: Mode,
     pub current_mode: Mode
 }
@@ -124,6 +84,7 @@ impl App {
             todo_lists: Vec::new(),
             options: Options::new(),
             quit_state: false,
+            input: String::new(),
             previous_mode: Mode::ListMode,
             current_mode: Mode::ListMode
         }
@@ -141,15 +102,45 @@ impl App {
         terminal.hide_cursor()?; //LINE OF GOD
         loop {
             terminal.draw(|f| ui::draw(f, self))?;
-            match events.recv()? {
-                Event::Input(key) => match key {
-                    Key::Char(c) => {
-                        self.translate_char_instruction(c);
-                    }
-                    Key::Esc => self.translate_escape(),
-                    _ => {}
+            if let Event::Input(key) = events.recv()? {
+                match self.current_mode {
+                    Mode::OptionMode => match key {
+                        Key::Char('q') => self.quit_state = true,
+                        Key::Char('j') => self.options.next(),
+                        Key::Char('k') => self.options.previous(),
+                        Key::Char('o') => self.current_mode = Mode::ListMode,
+                        _ => {}
+                    },
+                    Mode::ListMode => match key {
+                        Key::Char('q') => self.quit_state = true,
+                        Key::Char('j') => self.todo_list.next(),
+                        Key::Char('k') => self.todo_list.previous(),
+                        Key::Char('a') => self.todo_list
+                                                .add_task("default task".to_string()),
+                        Key::Char('d') => self.todo_list.remove(),
+                        Key::Char('x') => self.todo_list.mark_completeness(),
+                        Key::Char('o') => self.current_mode = Mode::OptionMode,
+                        Key::Char('i') => self.current_mode = Mode::InputMode,
+                        _ => {}
+                        // if c == '1' || c == '2' || c == '3' {
+                        //     self.todo_list.mark_with_tag(c);
+                        // }
+                    },
+                    Mode::InputMode => match key {
+                        Key::Char('\n') => {
+                            self.current_mode = Mode::ListMode;
+                            self.todo_list.change_current_task_name(self.input.to_string());
+                            self.input.clear();
+                        }
+                        Key::Esc => { 
+                            self.current_mode = Mode::ListMode;
+                            self.input.clear();
+                        }
+                        Key::Char(c) => { self.input.push(c); }
+                        Key::Backspace => { self.input.pop(); }
+                        _ => {}
+                    },
                 }
-                Event::Tick => {},
             }
             if self.quit_state == true {
                 return Ok(())
@@ -157,55 +148,5 @@ impl App {
         }
         
         Ok(())
-    }
-
-    pub fn translate_escape(&mut self) {
-        match self.current_mode {
-            Mode::OptionMode => {
-                self.current_mode = Mode::ListMode;
-            }
-            _ => self.current_mode = Mode::OptionMode
-        }
-    }
-
-    pub fn translate_char_instruction(&mut self, c: char) {
-        if c == 'q' {
-            self.quit_state = true;
-            return;
-        }
-
-        match self.current_mode {
-            Mode::OptionMode => {
-                if c == 'j' {
-                    self.options.next();
-                }
-                if c == 'k' {
-                    self.options.previous();
-                }
-                // if c == 'a' {
-                //     self.options.select();
-                // }
-            },
-            Mode::ListMode => {
-                if c == 'j' {
-                    self.todo_list.next();
-                }
-                if c == 'k' {
-                    self.todo_list.previous();
-                }
-                if c == 'a' {
-                    self.todo_list.add_task("default task".to_string());
-                }
-                if c == 'd' {
-                    self.todo_list.remove();
-                }
-                if c == 'x' {
-                    self.todo_list.mark_completeness();
-                }
-                if c == '1' || c == '2' || c == '3' {
-                    self.todo_list.mark_with_tag(c);
-                }
-            }
-        }
     }
 }

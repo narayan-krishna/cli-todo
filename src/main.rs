@@ -1,6 +1,7 @@
 mod ui;
 mod todo;
 mod app;
+mod options;
 
 use std::{error::Error, 
     io, 

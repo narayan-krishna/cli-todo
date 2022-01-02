@@ -1,0 +1,13 @@
+to implement:
+
+move options to options.rs
+move events to events.rs
+clean up ui rs
+
+weird issue where filling the gauge messes with ui
+
+decide on how to read/write to files
+sorting
+
+uncompleted/completed lists
+tabs/multiple listsk
