@@ -1,13 +1,17 @@
 to implement:
 
-move options to options.rs
 move events to events.rs
-clean up ui rs
+change the input box size
+increase font size
+user input for description
 
 weird issue where filling the gauge messes with ui
 
 decide on how to read/write to files
-sorting
+reading and writing files
+sort by priority
+move task up for down
+add command line
 
 uncompleted/completed lists
 tabs/multiple listsk

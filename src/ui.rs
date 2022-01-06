@@ -146,7 +146,9 @@ pub fn draw_todo_list<B: Backend>(f: &mut Frame<B>, chunk: Rect, todo: &mut Todo
         .title_alignment(Alignment::Center))
         // .borders(Borders::ALL))
         .style(Style::default())
-        .highlight_style(Style::default().add_modifier(Modifier::BOLD).bg(Color::Green));
+        .highlight_style(Style::default()/*.add_modifier(Modifier::BOLD)*/
+                                         .fg(Color::Green));
+                                         /*.add_modifier(Modifier::REVERSED));*/
         // .highlight_symbol(">> ");
 
     f.render_stateful_widget(todo_list, chunk, &mut todo.state);
@@ -233,12 +235,13 @@ pub fn draw_command<B: Backend>(f: &mut Frame<B>, chunk: Rect) {
 pub fn draw_input_mode<B: Backend>(f: &mut Frame<B>, input: &mut String) {
 
     let frame_top_length = f.size().width;
-    let offset = 15;
-    let chunk = Rect::new(frame_top_length/4 + offset, 5, (frame_top_length/2) - (offset*2), 10);
+    let frame_height = f.size().height;
+    let offset = 10;
+    let chunk = Rect::new(frame_top_length/4, frame_height/2 - 2, frame_top_length/2, 3);
 
     //change to lambda function
     let input_insert: &String = &input;
-    let input_line = vec![Spans::from(Span::raw(input_insert))];
+    let input_line = vec![Spans::from(Span::styled(input_insert, Style::default().fg(Color::Green)))];
     // input_line.push(Spans::from(Span::raw(input)));
 
     let todo_descript_paragraph = Paragraph::new(input_line)
@@ -248,7 +251,7 @@ pub fn draw_input_mode<B: Backend>(f: &mut Frame<B>, input: &mut String) {
         .borders(Borders::ALL))
         .style(Style::default())
         .alignment(Alignment::Left)
-        .wrap(Wrap { trim: true });
+        .wrap(Wrap { trim: false });
 
     f.render_widget(Clear, chunk);
     f.render_widget(todo_descript_paragraph, chunk);

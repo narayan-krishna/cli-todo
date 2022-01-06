@@ -171,13 +171,15 @@ impl TodoList {
             let i = match self.state.selected() {
                 Some(i) => {
                     self.uncompleted_list.remove(i);
-                    if self.uncompleted_list_length - 1 == i {
+                    if self.uncompleted_list_length == 1 {
                         self.state.select(Some(0));
+                    } else if self.uncompleted_list_length - 1 == i {
+                        self.state.select(Some(i - 1));
                     } else {
                         // self.next();
                     }
                 } 
-                None => println!("requires an element to remove!"),
+                None => {}/*println!("requires an element to remove!"),*/
             };
             self.uncompleted_list_length = self.uncompleted_list_length - 1;
         }
@@ -190,7 +192,7 @@ impl TodoList {
                 self.update_completion_progress(progress_direction);
                 self.uncompleted_list[i].mark_completeness();
             } 
-            None => println!("requires an element to remove!"),
+            None => {}/*println!("requires an element to remove!"),*/
         };
     }
 
@@ -209,7 +211,7 @@ impl TodoList {
             Some(i) => {
                 self.uncompleted_list[i].set_name(name);
             } 
-            None => println!("requires an element to remove!"),
+            None => {}/*println!("requires an element to remove!"),*/
         };
     }
 
