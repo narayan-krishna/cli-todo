@@ -147,7 +147,8 @@ pub fn draw_todo_list<B: Backend>(f: &mut Frame<B>, chunk: Rect, todo: &mut Todo
         // .borders(Borders::ALL))
         .style(Style::default())
         .highlight_style(Style::default()/*.add_modifier(Modifier::BOLD)*/
-                                         .fg(Color::Green));
+                                         .fg(Color::Black)
+                                         .bg(Color::Green));
                                          /*.add_modifier(Modifier::REVERSED));*/
         // .highlight_symbol(">> ");
 

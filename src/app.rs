@@ -115,8 +115,13 @@ impl App {
                         Key::Char('q') => self.quit_state = true,
                         Key::Char('j') => self.todo_list.next(),
                         Key::Char('k') => self.todo_list.previous(),
-                        Key::Char('a') => self.todo_list
-                                                .add_task("default task".to_string()),
+                        // Key::Char('a') => self.todo_list
+                        //                     //i want to get input
+                        //                       .add_task("default task".to_string()),
+                        Key::Char('a') => {
+                            self.todo_list.add_task(self.input.to_string());
+                            self.current_mode = Mode::InputMode;
+                        }
                         Key::Char('d') => self.todo_list.remove(),
                         Key::Char('x') => self.todo_list.mark_completeness(),
                         Key::Char('o') => self.current_mode = Mode::OptionMode,

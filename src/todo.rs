@@ -232,21 +232,6 @@ impl TodoList {
         let length_f64: f64 = self.uncompleted_list_length as f64;
         self.completion_progress = tasks_completed_f64/length_f64;
     }
-
-    // pub fn mark_as_uncomplete(&mut self, index: usize) {
-    //     // if x > 0 && x < list.size()
-    //     self.list[index].completed = ' ';
-    // }
-
-
-    // fn print(&self) {
-    //     for (index, item) in self.list.iter().enumerate() {
-    //         println!("{} -- [{}] -- {}", index, item.completed, item.name);
-    //     }
-    // }
-    // pub fn set_due_date(&mut self, date: Date) {
-
-    // }
 }
 
 //---------------------------------------------------------
